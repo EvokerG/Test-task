@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
 
@@ -13,6 +14,9 @@ public class PlayerMovement : MonoBehaviour
     private float TurningRadius;
     private float TurningTime;
     private int StartingRotation;
+
+    [SerializeField] AudioClip[] Footsteps;
+    private float LastStep;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -29,6 +33,14 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (LastStep >= 1 / CharacterForwardSpeed * 0.6f)
+        {
+            LastStep = 0;
+            System.Random rand = new System.Random();
+            gameObject.GetComponent<AudioSource>().resource = Footsteps[rand.Next(5)];
+            gameObject.GetComponent<AudioSource>().Play();
+        }
+        LastStep += Time.deltaTime;
         if (Turning)
         {            
             if (Mathf.Abs((StartingRotation * 90) - gameObject.transform.rotation.eulerAngles.y) < 90)
@@ -57,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
                     Destination = Mathf.Clamp((Input.mousePosition.x / Screen.width - 0.5f) * 2, -1, 1) * WidthOfTrack;
                 }
             }
-            this.GetComponent<CharacterController>().Move(transform.TransformVector(new Vector3(Destination - PositionOnTrack, 0, CharacterForwardSpeed * Time.deltaTime)));
+            this.GetComponent<CharacterController>().Move(transform.TransformVector(new Vector3(Destination - PositionOnTrack, 0, CharacterForwardSpeed * Time.deltaTime)));            
             PositionOnTrack = Destination;
         }
         this.transform.position = new Vector3(transform.position.x, 0.25f, transform.position.z);
